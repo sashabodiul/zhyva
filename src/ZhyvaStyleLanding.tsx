@@ -194,7 +194,12 @@ const DirectionCard: React.FC<{
   viewportRoot?: Element | null;   // кастомный root для whileInView
 }> = ({ item, onOpen, viewportRoot }) => {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const isInViewRaw = useInView(wrapRef, { root: (viewportRoot ?? null) as Element | null, amount: 0.5, once: true });
+  const isInViewRaw = useInView(wrapRef, {
+    // useInView ожидает root как RefObject<Element> | Element | undefined
+    root: viewportRoot ? ({ current: viewportRoot } as React.RefObject<Element>) : undefined,
+    amount: 0.5,
+    once: true,
+  });
   const shouldReveal = viewportRoot ? isInViewRaw : true;
 
   return (
@@ -608,25 +613,24 @@ const TeamSlider: React.FC = () => {
 /* --------------------------------
  * Ліва рейка + кисть
  * -------------------------------- */
-const PinnedCreamRail: React.FC<{ topGap?: number; bottomGap?: number; sections?: string[]; activeIdx?: number }> = ({ topGap = 64, bottomGap = 140, sections = [], activeIdx = 0 }) => {
-  const [h, setH] = useState<number>(() => Math.max(0, window.innerHeight - topGap - bottomGap));
-  useEffect(() => {
-    const onResize = () => setH(Math.max(0, window.innerHeight - topGap - bottomGap));
-    onResize(); window.addEventListener("resize", onResize);
-    return ()=>window.removeEventListener("resize", onResize);
-  }, [topGap, bottomGap]);
+const PinnedCreamRail: React.FC<{ topGap?: number; bottomGap?: number }> = ({ topGap = 64, bottomGap = 140 }) => {
+  const height = Math.max(0, window.innerHeight - topGap - bottomGap);
   return (
-    <div aria-hidden className="pointer-events-none fixed left-3 md:left-6 z-30 rounded-full" style={{ top: topGap, bottom: bottomGap, width: 8, background: "linear-gradient(180deg, #f7e6d5, #f5dcc6)" }}>
-      <div className="rail-dots" style={{ inset: 0 }}>
-        {sections.map((_, i) => <span key={i} className={`rail-dot ${i===activeIdx ? "active": ""}`} />)}
-      </div>
-    </div>
+    <motion.div
+      className="fixed left-6 rounded-full bg-[color:var(--cream)] shadow-soft"
+      style={{
+        top: topGap,
+        height,
+        width: "6px",
+        zIndex: 50,
+      }}
+    />
   );
 };
 
 const BrushOnRail: React.FC<{
-  containerRef: React.RefObject<HTMLDivElement>,
-  topGap?: number, bottomGap?: number
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  topGap?: number; bottomGap?: number;
 }> = ({ containerRef, topGap = 64, bottomGap = 140 }) => {
   const { scrollYProgress } = useScroll({ container: containerRef });
   const rawY = useMotionValue(0);
@@ -696,7 +700,7 @@ export default function ZhyvaStyleLanding() {
   const dim = useTransform(pageProgress, [0, 1], [0, 0.12]);
 
   // Активна секція для точок
-  const [activeIdx, setActiveIdx] = useState(0);
+  const [, setActiveIdx] = useState(0);
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -799,8 +803,13 @@ export default function ZhyvaStyleLanding() {
     const enter = () => { hover = true; };
     const leave = () => {
       hover = false;
-      popAnimate({ from: 1, to: 0, ...inertia({ velocity: -300, power: 0.8, timeConstant: 350, bounceStiffness: 120, bounceDamping: 18 }) })
-        .onUpdate(() => { el.style.transform = `translate(0,0)`; });
+      popAnimate({
+        from: 1,
+        to: 0,
+        ...inertia({ velocity: -300, power: 0.8, timeConstant: 350, bounceStiffness: 120, bounceDamping: 18 }),
+        onUpdate: () => { el.style.transform = `translate(0,0)`; },
+      });
+
     };
     window.addEventListener("mousemove", onMove);
     el.addEventListener("mouseenter", enter);
@@ -814,7 +823,7 @@ export default function ZhyvaStyleLanding() {
       className="relative h-screen overflow-y-auto snap-y snap-mandatory bg-stone-50 text-stone-900 no-scrollbar snap-wrap"
     >
       {/* Ліва рейка + кисть */}
-      <PinnedCreamRail topGap={64} bottomGap={140} sections={sectionIds} activeIdx={activeIdx} />
+      <PinnedCreamRail topGap={64} bottomGap={140} />
       <BrushOnRail containerRef={containerRef} topGap={64} bottomGap={140} />
 
       {/* затемнение */}
