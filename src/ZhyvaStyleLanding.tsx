@@ -10,6 +10,7 @@ import {
   useSpring,
   useInView,
 } from "framer-motion";
+import type { Variants } from "framer-motion";
 import {
   Menu, X, ChevronRight, Sparkles, Heart, ShieldCheck, Users,
   ChevronLeft, MoveRight, Paintbrush, Phone, Star
@@ -24,17 +25,19 @@ import * as THREE from "three";
 /* --------------------------------
  * helpers / variants
  * -------------------------------- */
+const EASE: number[] = [0.16, 1, 0.3, 1];
+
 const scrollToId = (id: string) => {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
-const fadeUp = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
 };
 
-const stagger = {
+const stagger: Variants = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
 };
@@ -191,7 +194,6 @@ const DirectionCard: React.FC<{
   viewportRoot?: Element | null;   // кастомный root для whileInView
 }> = ({ item, onOpen, viewportRoot }) => {
   const wrapRef = useRef<HTMLDivElement>(null);
-  // Если root ещё не готов (null/undefined) — считаем, что карточка видима, чтобы фото не пряталось
   const isInViewRaw = useInView(wrapRef, { root: (viewportRoot ?? null) as Element | null, amount: 0.5, once: true });
   const shouldReveal = viewportRoot ? isInViewRaw : true;
 
@@ -214,7 +216,6 @@ const DirectionCard: React.FC<{
             className="w-full h-56 object-cover img-skeleton"
             loading="lazy"
             onError={(e)=>{ (e.currentTarget as HTMLImageElement).src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=1600&auto=format&fit=crop"; }}
-            // Вместо проблемного whileInView с clipPath — управляем напрямую флагом видимости
             style={{
               clipPath: shouldReveal ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)",
               transition: "clip-path .8s cubic-bezier(.22,1,.36,1)",
@@ -234,7 +235,7 @@ const DirectionCard: React.FC<{
 };
 
 /* --------------------------------
- * Модалка напряму (фикс правил хуков + галерея + tabs + scroll-scrub)
+ * Модалка напряму
  * -------------------------------- */
 const DirectionModal: React.FC<{
   open: boolean;
@@ -242,12 +243,11 @@ const DirectionModal: React.FC<{
   onClose: () => void;
   onBook: () => void;
 }> = ({ open, direction, onClose, onBook }) => {
-  // ХУКИ — безусловно, в одном порядке
+  // hooks — безусловно и в одном порядке
   const bodyRef = useRef<HTMLDivElement>(null);
   const [activeIdx, setActiveIdx] = useState(0);
   const [currentImg, setCurrentImg] = useState(0);
 
-  // блокируем прокрутку body при открытии
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -257,13 +257,11 @@ const DirectionModal: React.FC<{
     return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
   }, [open, onClose]);
 
-  // сброс активной картинки при смене направления
   useEffect(() => {
     if (!direction) return;
     setCurrentImg(0);
   }, [direction]);
 
-  // следим за секциями внутри модалки (даже если скрыта — эффект просто не сработает)
   const sections = useMemo(() => ([
     { id: "sec-overview", label: "Опис" },
     { id: "sec-services", label: "Послуги" },
@@ -292,7 +290,6 @@ const DirectionModal: React.FC<{
     el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // РЕНДЕР (условный) — но hooks выше уже отработали
   const show = open && !!direction;
 
   return (
@@ -328,7 +325,7 @@ const DirectionModal: React.FC<{
                 className="w-full h-full object-cover"
                 initial={{ opacity: 0, scale: 1.04 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: .6, ease: [0.22,1,0.36,1] }}
+                transition={{ duration: .6, ease: EASE }}
                 onError={(e)=>{ (e.currentTarget as HTMLImageElement).src = direction.img; }}
               />
             </div>
@@ -560,7 +557,7 @@ const TeamSlider: React.FC = () => {
               alt={active.name}
               className="rounded-3xl border shadow-lg w-full h-[560px] object-cover img-skeleton"
               initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.45, ease: "easeOut" }}
+              transition={{ duration: 0.45, ease: EASE }}
               loading="lazy"
               onError={(e)=>{(e.currentTarget as HTMLImageElement).src="https://images.unsplash.com/photo-1546539782-6fc531453083?q=80&w=1600&auto=format&fit=crop"}}
             />
@@ -572,7 +569,7 @@ const TeamSlider: React.FC = () => {
             <motion.div
               key={active.name}
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.4, ease: EASE }}
             >
               <h3 className="text-4xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>{active.name}</h3>
               <div className="mt-1 text-amber-900 font-semibold text-lg">{active.role}</div>
@@ -749,7 +746,7 @@ export default function ZhyvaStyleLanding() {
   const titleScaleY = useTransform(scrollYProgress, [0, 1], [1, 0.96]);
   const titleY = useTransform(scrollYProgress, [0, 1], [0, 10]);
 
-  // reveal классы внутри контейнера
+  // reveal класи
   useEffect(() => {
     const root = containerRef.current;
     if (!root) return;
@@ -896,7 +893,7 @@ export default function ZhyvaStyleLanding() {
         <Marquee items={["Подологія", "Косметологія", "Масаж", "Natural look", "Стерильність", "Індивідуальний підхід", "Результат"]} />
       </Section>
 
-      {/* ABOUT со skew */}
+      {/* ABOUT */}
       <motion.div style={{ skewY: skew }} className="skew-wrap">
         <Section id="about" className="py-section">
           <div className="absolute left-0 right-0 -z-10">
@@ -936,7 +933,7 @@ export default function ZhyvaStyleLanding() {
         </Section>
       </motion.div>
 
-      {/* НАПРЯМИ — карточки (fixed images) */}
+      {/* НАПРЯМИ — карточки */}
       <Section id="directions" className="py-section">
         <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}>
           <motion.h2 variants={fadeUp} style={{ fontFamily: "Playfair Display, serif" }}>Наші напрями</motion.h2>
@@ -948,7 +945,7 @@ export default function ZhyvaStyleLanding() {
                 <DirectionCard
                   item={d}
                   onOpen={(x)=>{ openDirection(x); }}
-                  viewportRoot={containerRef.current}   // кастомный root
+                  viewportRoot={containerRef.current}
                 />
               </motion.div>
             ))}
@@ -1023,7 +1020,7 @@ export default function ZhyvaStyleLanding() {
           <div>
             <h2 className="text-2xl md:text-3xl font-bold" style={{ fontFamily: "Playfair Display, serif" }}>Масаж</h2>
             <p className="mt-3 text-stone-700">Масажі допомагають не лише розслабитися, а й відновити зв'язок із собою.</p>
-            <ul className="mt-4 grid grid-cols-1 см:grid-cols-2 gap-3 text-stone-700">
+            <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-stone-700">
               {[
                 "Масаж блейдами",
                 "Екопластика тіла",
@@ -1071,7 +1068,7 @@ export default function ZhyvaStyleLanding() {
           <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <motion.h2 variants={fadeUp} style={{ fontFamily: "Playfair Display, serif" }}>Переваги нашого центру</motion.h2>
             <motion.p variants={fadeUp} className="mt-3 text-stone-700">У нас можна повністю присвятити час собі — все в одному місці, уважно та професійно.</motion.p>
-            <motion.div variants={fadeUp} className="mt-6 grid см:grid-cols-3 gap-3">
+            <motion.div variants={fadeUp} className="mt-6 grid sm:grid-cols-3 gap-3">
               <div className="rounded-2xl bg-white p-5 border shadow-soft reveal">
                 <ShieldCheck className="w-6 h-6" />
                 <div className="font-semibold mt-2">Безпечно</div>
