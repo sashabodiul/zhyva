@@ -1,0 +1,272 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Playfair+Display:wght@600;700&display=swap');
+
+:root{
+  /* Палитра с лучшим контрастом */
+  --cream: #f8efe6;         /* мягкий фон секций */
+  --cream-strong: #f3e5d8;  /* чуть темнее для карточек/подложек */
+  --ink: #0b0a09;           /* основной текст */
+  --muted:#5f5a56;          /* вторичный текст темнее */
+  --brand:#5a3018;          /* фирменный — темнее для контраста */
+  --brand-500:#6a3b1f;
+  --brand-600:#4a2713;
+  --brand-contrast:#ffffff; /* текст на brand */
+  --ring:#f1c089;           /* акцент обводки/фокуса */
+  --header-h: 64px;         /* проставляется из JS */
+}
+
+/* base */
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+html, body { scroll-behavior:smooth; }
+body{
+  font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  color:var(--ink);
+  background:#fbf7f2;
+}
+
+a{ color: var(--brand-600); text-decoration: none; }
+a:hover{ text-decoration: underline; }
+
+/* layout */
+.section{
+  max-width:72rem;
+  margin:0 auto;
+  padding:3rem 1rem;
+  scroll-margin-top: var(--header-h);
+}
+.py-section{padding:5rem 1rem}
+
+.no-scrollbar::-webkit-scrollbar{display:none}
+.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+
+/* кастомный контейнер со скроллом */
+.snap-wrap{
+  height:100%;
+  overflow-y:auto;
+  scroll-snap-type:y mandatory;
+  scroll-padding-top: var(--header-h);
+}
+.snap{scroll-snap-align:start}
+
+/* utility поверхности */
+.surface{ background: var(--cream); }
+.surface-strong{ background: var(--cream-strong); }
+.text-muted{ color: var(--muted); }
+.text-inverse{ color: var(--brand-contrast); }
+
+/* Кнопки-пилюли */
+.pill{
+  border-radius:9999px;
+  padding:.65rem 1rem;
+  border:1px solid #e5dfd9;
+  background:#fff;
+  transition:transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+  color: var(--ink);
+  cursor: pointer;
+}
+.pill:hover{transform:translateY(-1px)}
+.pill:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+}
+.pill-dark{
+  background:var(--brand);
+  color:var(--brand-contrast);
+  border-color:transparent;
+}
+.pill-dark:hover{ background: var(--brand-500); }
+
+/* Кнопки */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  border-radius:9999px;padding:.8rem 1.1rem;
+  border:1px solid #e5dfd9;background:#fff;font-weight:700;
+  color: var(--ink);
+  transition:transform .2s ease, background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
+  cursor: pointer;
+}
+.btn:hover{ transform: translateY(-1px); }
+.btn:focus-visible{ outline: none; box-shadow: 0 0 0 3px var(--ring); }
+
+.btn-primary{ background:var(--brand); color:var(--brand-contrast); border-color:transparent; }
+.btn-primary:hover{ background: var(--brand-500); }
+
+/* используется в TSX */
+.btn-dark{ background:#111; color:#fff; border-color:transparent; }
+.btn-dark:hover{ background:#000; }
+
+.btn-light{ background:#fff; color:var(--brand-600); border-color:#e5dfd9; }
+
+/* Карточки и тени */
+.card{
+  border-radius:1.25rem;overflow:hidden;background:#fff;
+  border:1px solid #edd8c7;
+  box-shadow:0 12px 40px rgba(0,0,0,.06);
+  will-change: transform;
+  cursor: pointer;
+}
+.shadow-soft{box-shadow:0 16px 44px rgba(0,0,0,.08)}
+.shadow-card{box-shadow:0 20px 60px rgba(0,0,0,.10)}
+
+/* Хедер и подложки */
+.header-blur{
+  backdrop-filter: saturate(1.4) blur(10px);
+  background: color-mix(in srgb, #ffffff 82%, var(--cream) 18%);
+  border-bottom: 1px solid #f0dfcf;
+}
+
+/* fab */
+.fab{
+  position:fixed; right:18px; bottom:18px; z-index:60;
+  height:56px; width:56px; border-radius:50%;
+  display:grid; place-items:center; background:var(--brand); color:var(--brand-contrast);
+  box-shadow:0 14px 40px rgba(74,44,24,.45); border:none; cursor:pointer;
+}
+.fab:focus-visible{ outline: none; box-shadow: 0 0 0 3px var(--ring), 0 14px 40px rgba(74,44,24,.45); }
+
+/* modal (универсальная) */
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.45);
+  display:grid; place-items:center; z-index:70;
+  padding: 18px;
+}
+.modal{
+  background:#fff; border-radius:20px; width:min(96vw,980px);
+  padding:0; box-shadow:0 30px 80px rgba(0,0,0,.25); border:1px solid #eee;
+  overflow:hidden;
+}
+.modal-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 22px; border-bottom:1px solid #f1e6db; background: #fff7f0;
+}
+.modal-body{ padding: 18px 22px; }
+.modal-close{
+  border:none; background:transparent; padding:8px; border-radius:10px; cursor:pointer;
+}
+.modal-close:hover{ background:#f3e5d8; }
+
+/* reveal (управляется IntersectionObserver-ом) */
+.reveal{opacity:0; transform:translateY(16px)}
+.reveal-show{
+  opacity:1; transform:none;
+  transition:transform .6s cubic-bezier(.21,.61,.35,1), opacity .6s ease;
+}
+
+/* изображения — запасной фон */
+.img-skeleton{background:#f2e8de}
+
+/* HERO copy поверх 3D — читаемость */
+.hero-copy{
+  color:#fff;
+  background: rgba(12,10,9, .28);
+  backdrop-filter: blur(3px);
+  border-radius: 18px;
+  padding: 18px 22px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.22);
+}
+
+.hero-title{
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  line-height: 1.1;
+  margin: 0;
+  text-shadow: 0 2px 14px rgba(0,0,0,.35);
+}
+.hero-sub{
+  margin-top: .9rem;
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  color: #f1ebe6;
+  text-shadow: 0 1px 10px rgba(0,0,0,.3);
+}
+.hero-chip{
+  color: #fff;
+  background: rgba(12,10,9,.35);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 9999px;
+  padding: .55rem .9rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+
+/* --- эффекты в стиле twinbru --- */
+.mask-reveal{
+  position: relative; overflow: hidden; border-radius: 1rem;
+}
+.mask-reveal > img, .mask-reveal > .mask-slot{
+  display:block; width:100%; height:100%; object-fit:cover;
+}
+.mask-reveal::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg, rgba(0,0,0,.25), rgba(0,0,0,0));
+  mix-blend-mode:multiply; pointer-events:none;
+}
+
+/* Диагональный фон */
+.diag-bg{
+  background:
+    linear-gradient( -6deg, rgba(247,230,213,.5), rgba(247,230,213,0) 48%),
+    radial-gradient(80% 60% at 20% 0%, rgba(255,255,255,.6), rgba(255,255,255,0));
+}
+
+/* Маркиза */
+.marquee{ display:flex; gap:2rem; overflow:hidden; mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+.marquee-track{ display:flex; gap:2rem; will-change: transform; animation: marquee 28s linear infinite; }
+.marquee-item{ white-space:nowrap; padding:.55rem 1rem; border:1px solid #efd7c6; background:#fff; border-radius:9999px; font-weight:600; }
+@keyframes marquee{ from{ transform: translateX(0); } to{ transform: translateX(-50%); } }
+
+/* Скью по скорости прокрутки */
+.skew-wrap{ will-change: transform; }
+
+/* Навигационные точки на левой рейке */
+.rail-dots{
+  position: absolute; left: -10px; top: 0; bottom: 0;
+  display:flex; flex-direction:column; justify-content:space-between;
+  pointer-events:none;
+}
+.rail-dot{ width:8px; height:8px; border-radius:50%; background:#e8d6c6; box-shadow:0 1px 0 rgba(0,0,0,.06); }
+.rail-dot.active{ background:#5a3018; }
+
+/* Tilt */
+.tilt{ transform-style: preserve-3d; }
+.tilt-inner{ transform: translateZ(24px); }
+
+/* Магнит */
+.magnet{ position:relative; overflow:hidden; }
+.magnet span{ position:relative; display:inline-block; transition: transform .12s ease; }
+
+/* ---- Modal gallery ---- */
+.thumb-row{
+  display:flex; gap:.5rem; overflow:auto; padding:10px 14px;
+  border-top:1px solid #f1e6db; background:#fff;
+  scroll-snap-type: x proximity;
+}
+.thumb{
+  width:72px; height:56px; border-radius:10px; overflow:hidden; flex:0 0 auto;
+  border:1px solid #ecd6c4; background:#f6eee6;
+  cursor:pointer; scroll-snap-align:center;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.thumb:hover{ transform: translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.08); }
+.thumb.active{ border-color:#b3744d; box-shadow:0 0 0 2px rgba(179,116,77,.22) inset; }
+
+.main-img-wrap{ position:relative; overflow:hidden; }
+.main-img-wrap img{ transition: transform .4s cubic-bezier(.22,1,.36,1); }
+.main-img-wrap:hover img{ transform: scale(1.02); }
+
+/* ---- Sticky tabs header inside modal ---- */
+.modal-tabs{
+  position: sticky; top: 0; z-index: 2;
+  background: #fff; border-bottom:1px solid #f1e6db;
+  display:flex; gap:.25rem; padding:10px;
+}
+.modal-tab{
+  border-radius:9999px; padding:.5rem .9rem; font-weight:600; cursor:pointer;
+  border:1px solid #edd8c7; background:#fff; color:#5a3018;
+  transition: background .15s ease, color .15s ease, border-color .15s ease, transform .15s ease;
+}
+.modal-tab:hover{ transform: translateY(-1px); }
+.modal-tab.active{ background:#5a3018; color:#fff; border-color:#5a3018; }
+
+/* Sections inside modal body */
+.modal-section{ scroll-margin-top: 56px; } /* offset под sticky tabs */
